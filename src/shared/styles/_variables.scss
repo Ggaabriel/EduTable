@@ -1,0 +1,39 @@
+/* ===== Токены SCSS (цвета/радиусы/тени) ===== */
+$bg: #f1f4fd;
+$surface: #ffffff;
+$text: #0e0e10;
+$active: #1b1b1f;
+$muted: #d3d3de;
+$primary: #3b82f6;
+$heading: #111827;
+$border-light: #5e4646;
+$background-light: #f0f0f7;
+$text-dark: $active;
+$background-white: #fff;
+$background-lightest: $background-white;
+$primary-light: none;
+$primary-dark: #ddd;
+$text-inverted: $active;
+
+$radius: 1rem;
+$radius-lg: 1.25rem;
+$shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.06);
+
+/* Шрифты */
+$font-family: "Gotham Pro", sans-serif;
+$second-family: "Manrope", sans-serif;
+
+/* Брейкпоинты */
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-tablet-lg: 1024px;
+$breakpoint-desktop: 1025px;
+
+$screens: (
+  xs: 0rem,
+  sm: 40rem,
+  md: 48rem,
+  lg: 64rem,
+  xl: 80rem,
+  x2l: 96rem,
+);
