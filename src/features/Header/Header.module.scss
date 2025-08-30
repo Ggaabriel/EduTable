@@ -1,0 +1,48 @@
+@use "@/shared/styles/_mixins.scss" as mixins;
+@use "@/shared/styles/_variables.scss" as variables;
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem; /* 20px */
+  flex-wrap: wrap;
+
+  &__title {
+    @include mixins.fluid-text(32, 24);
+    font-weight: 700;
+    color: variables.$heading;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: variables.$breakpoint-tablet) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+
+    &__title {
+      text-align: center;
+    }
+
+    &__controls {
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    @media (max-width: variables.$breakpoint-mobile) {
+      &__controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  }
+}

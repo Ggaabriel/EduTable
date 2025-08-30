@@ -1,0 +1,19 @@
+@use "@/shared/styles/_variables.scss" as variables;
+
+//Filers
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem; /* 20px */
+  margin: 24px 0;
+  justify-content: space-between;
+
+  @media (max-width: variables.$breakpoint-tablet) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (max-width: variables.$breakpoint-mobile) {
+    grid-template-columns: 1fr;
+  }
+}

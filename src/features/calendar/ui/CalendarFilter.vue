@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import CalendarRange from "./CalendarRange.vue";
+import Calendar from "@/app/images/Calendar.svg";
 
 const props = defineProps<{
   modelValue?: [string, string] | null;
@@ -23,30 +24,25 @@ watch(
   },
 );
 
-function open() {
+function toggleCalendar() {
   tempRange.value = getCurrentRange();
-  show.value = true;
-}
-function close() {
-  show.value = false;
-  tempRange.value = getCurrentRange();
+  show.value = !show.value;
 }
 function onApply(val: [string, string]) {
   emit("update:modelValue", val);
   show.value = false;
 }
 function onCancel() {
-  emit("update:modelValue", null); // сбрасываем выбранный диапазон
+  emit("update:modelValue", null);
   show.value = false;
   tempRange.value = getCurrentRange();
 }
 
-// Закрытие по клику вне
 function handleClickOutside(e: MouseEvent) {
   if (!show.value) return;
   const filter = document.getElementById("calendar-filter-root");
   if (filter && !filter.contains(e.target as Node)) {
-    close();
+    toggleCalendar();
   }
 }
 onMounted(() => {
@@ -66,45 +62,11 @@ function formatRangeLabel(range: [string, string] | null) {
 
 <template>
   <div class="calendar-filter" id="calendar-filter-root">
-    <button class="calendar-filter-btn" @click="open">
+    <button class="calendar-filter-btn" @click="toggleCalendar">
       <span class="calendar-filter-label">
         {{ formatRangeLabel(getCurrentRange()) }}
       </span>
-      <svg
-        class="calendar-filter-icon"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <rect
-          x="3"
-          y="4"
-          width="18"
-          height="16"
-          rx="2"
-          stroke="#55565C"
-          stroke-width="1.5"
-        />
-        <path
-          d="M16 2V6"
-          stroke="#55565C"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-        <path
-          d="M8 2V6"
-          stroke="#55565C"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-        <path
-          d="M3 10H21"
-          stroke="#55565C"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-      </svg>
+      <Calendar class="calendar-filter-icon" />
     </button>
     <div v-if="show" class="calendar-filter-popup">
       <CalendarRange
@@ -118,9 +80,9 @@ function formatRangeLabel(range: [string, string] | null) {
 
 <style scoped lang="scss">
 .calendar-filter {
+  flex-grow: 1;
   position: relative;
-  display: inline-block;
-  width: 320px;
+  display: block;
 }
 .calendar-filter-btn {
   width: 100%;

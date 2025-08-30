@@ -101,11 +101,11 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/_variables.scss";
+@use "@/shared/styles/_variables.scss";
 
 .select-input {
+  flex-grow: 1;
   position: relative;
-  width: 320px;
 }
 
 .select-input__button {

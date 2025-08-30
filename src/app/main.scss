@@ -1,6 +1,5 @@
-@use "sass:map";
+@use "@/shared/styles/_variables.scss" as variables;
 @use "@/shared/styles/_mixins.scss" as mixins;
-@use "@/shared/styles/_variables.scss" as *;
 
 /* Font-face для Gotham Pro (все доступные веса) */
 @font-face {
@@ -78,47 +77,45 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: $font-family;
+  font-family: variables.$font-family;
 }
 
 body {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-body {
-  background-color: $bg;
+  background-color: variables.$bg;
   @include mixins.fluid-text(16, 14);
   font-weight: 400;
   line-height: 1.3;
-  color: $text;
-  font-family: $font-family;
+  color: variables.$text;
+  font-family: variables.$font-family;
+  @media (min-width: variables.$breakpoint-tablet) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
 }
 
-/* Утилитарные классы типографики */
 .page-title {
   @include mixins.fluid-text(32, 24);
   font-weight: 700 !important;
   line-height: 1.2 !important;
-  color: $heading;
+  color: variables.$heading;
 }
 .section-title {
   @include mixins.fluid-text(16, 14);
   font-weight: 600 !important;
   line-height: 1.3 !important;
-  color: $text;
+  color: variables.$text;
 }
 .table-text {
   @include mixins.fluid-text(14, 12);
   font-weight: 400 !important;
   line-height: 1.3 !important;
-  color: $text;
+  color: variables.$text;
 }
 .small-text {
   @include mixins.fluid-text(12, 10);
   font-weight: 400 !important;
   line-height: 1.3 !important;
-  color: $text;
+  color: variables.$text;
 }

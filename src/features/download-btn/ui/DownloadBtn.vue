@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import Save from "@/app/images/Save.svg";
 </script>
 
 <template>
   <button class="download-btn">
-    <img src="@/app/images/Save.svg" alt="Скачать" class="download-btn__icon" />
+    <Save alt="Скачать" class="download-btn__icon" />
     <span class="download-btn__text">Скачать</span>
   </button>
 </template>
@@ -35,16 +36,16 @@
   &:active {
     background: #16b240;
   }
-}
 
-.download-btn__icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-}
+  &__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
 
-.download-btn__text {
-  font-weight: 500;
-  color: #0e0e10;
+    &__text {
+      font-weight: 500;
+      color: #0e0e10;
+    }
+  }
 }
 </style>

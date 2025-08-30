@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, defineEmits } from "vue";
-import SearchIcon from "@/shared/styles/icons/SearchIcon.vue";
+import { ref } from "vue";
+import Search from "@/app/images/Search.svg";
 
-const props = defineProps<{
-  modelValue?: string;
+const { searchQuery } = defineProps<{
+  searchQuery?: string;
 }>();
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:searchQuery"]);
 
 const isActive = ref(false);
 
@@ -16,7 +16,7 @@ function onBlur() {
   isActive.value = false;
 }
 function onInput(e: Event) {
-  emit("update:modelValue", (e.target as HTMLInputElement).value);
+  emit("update:searchQuery", (e.target as HTMLInputElement).value);
 }
 </script>
 
@@ -24,32 +24,32 @@ function onInput(e: Event) {
   <div class="search-input" :class="{ 'search-input--active': isActive }">
     <input
       type="text"
-      :value="props.modelValue"
+      :value="searchQuery"
       @input="onInput"
       @focus="onFocus"
       @blur="onBlur"
       placeholder="Поиск..."
       class="search-input__field"
     />
-    <SearchIcon class="search-input__icon" />
+    <Search class="search-input__icon" />
   </div>
 </template>
 
 <style lang="scss" scoped>
-@import "@/shared/styles/_variables.scss";
+@use "@/shared/styles/_variables.scss" as variables;
 
 .search-input {
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid $muted;
+  border: 1px solid variables.$muted;
   border-radius: 0.625rem;
   background: white;
   transition: all 0.2s ease;
 
   // По умолчанию иконка серая
   .search-input__icon {
-    stroke: $muted;
+    stroke: variables.$muted;
     transition: stroke 0.2s;
   }
 
@@ -73,13 +73,13 @@ function onInput(e: Event) {
   border: none;
   outline: none;
   background: transparent;
-  font-family: $font-family;
+  font-family: variables.$font-family;
   font-size: 1rem;
-  color: $text;
+  color: variables.$text;
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: $muted;
+    color: variables.$muted;
     transition: color 0.2s ease;
   }
 }
@@ -92,14 +92,14 @@ function onInput(e: Event) {
 }
 
 /* --- Адаптивность --- */
-@media (max-width: 768px) {
+@media (max-width: variables.$breakpoint-tablet) {
   .search-input__field {
     width: 100%;
     min-width: 250px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: variables.$breakpoint-mobile) {
   .search-input__field {
     min-width: auto;
   }
