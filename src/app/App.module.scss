@@ -4,7 +4,7 @@
 
 // Main
 .main {
-  background-color: white;
+  background-color: variables.$surface;
   width: calc(100vw - 6rem);
   max-width: 1632px;
   border-radius: 1rem;

@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, provide } from "vue";
-
-import CalendarFilter from "@/features/calendar/ui/CalendarFilter.vue";
-import SelectInput from "@/shared/ui/SelectInput.vue";
+import { ref, computed } from "vue";
 import DataTable from "@/features/data-table/ui/DataTable.vue";
 import styles from "./App.module.scss";
 import { columns } from "./columns";
