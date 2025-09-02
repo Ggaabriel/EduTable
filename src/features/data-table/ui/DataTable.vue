@@ -365,7 +365,7 @@ const paginationPages = computed<(number | "...")[]>(() => {
 
         <!-- Rows per page -->
         <div class="rows-per-page">
-          <span>Rows per page</span>
+          <span>Показывать</span>
           <select v-model.number="pageSize">
             <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
               {{ opt }}
