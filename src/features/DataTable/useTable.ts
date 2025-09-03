@@ -10,7 +10,7 @@ import {
 import { ref, type Ref } from "vue";
 
 interface Props {
-  schools: School[];
+  schools: Ref<School[]>;
   tableHeaders: TableHeaders;
   pageIndex: number;
   pageSize: number;

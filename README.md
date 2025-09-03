@@ -1,39 +1,47 @@
-# .
+# EduTable
 
-This template should help get you started developing with Vue 3 in Vite.
+Проект тестового задания с реализацией таблицы школ с фильтрацией и интеграцией с API.
 
-## Recommended IDE Setup
+## Принятые решения и отклонения от дизайна
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+В процессе реализации были внесены изменения по сравнению с исходным макетом.  
 
-## Type Support for `.vue` Imports in TS
+- **Количество элементов в таблице.**  
+  В макете количество строк ограничено, однако для реального сценария этого недостаточно. Было принято решение увеличить число элементов, чтобы поиск и фильтрация имели больше смысла.  
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- **Объединение фильтров “Федеральные округа” и “Регионы”.**  
+  Бэкенд принимает только одно значение из этой группы, поэтому фильтры были объединены в один селект, чтобы избежать ложного ощущения множественного выбора.  
 
-## Customize configuration
+- **Валидация.**  
+  Так как бэкенд не возвращает функцию валидации, она осталась на стороне сервера. На фронтенде пользователь может выбрать только одно из допустимых значений.  
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- **Адаптивность.**  
+  Интерфейс доработан для корректного отображения на планшетах и телефонах.  
 
-## Project Setup
+- **Обработка ошибок.**  
+  Добавлен компонент уведомлений, который информирует пользователя о проблемах при загрузке данных.  
 
-```sh
-npm install
-```
+- **Не реализованные функции.**  
+  Из-за ограниченного времени и недостаточного опыта во Vue часть функционала осталась не завершённой:  
+  - полноценная пагинация;  
+  - выбор количества элементов на странице;  
+  - кнопка ручной подгрузки данных;
+  - скелетоны;
+  - полный вывод всех ошибок в уведомляшке.
 
-### Compile and Hot-Reload for Development
+## Использованные технологии
 
-```sh
-npm run dev
-```
+- **Архитектура:** FSD  
+- **Фреймворк:** Vue 3  
+- **Язык:** TypeScript  
+- **Стили:** SCSS  
+- **Библиотеки:**  
+  - TanStack Table  
+  - TanStack Query  
+  - Axios  
+  - PrimeVue 
+  - date-fns 
 
-### Type-Check, Compile and Minify for Production
+---
 
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+⚠️ Проект носит демонстрационный характер. Часть функций упрощена или не завершена.

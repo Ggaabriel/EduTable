@@ -15,6 +15,7 @@ export default defineConfig({
     vueDevTools(),
     svgLoader(),
   ],
+  base: '/EduTable/',
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
