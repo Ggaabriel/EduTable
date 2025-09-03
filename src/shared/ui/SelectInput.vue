@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
+import SelectSkeleton from "./SelectSkeleton.vue";
 
 interface Option {
-  value: string;
+  value: string | number;
   label: string;
 }
 
-const props = defineProps<{
-  modelValue?: string | null;
+interface OptionGroup {
+  label: string;
   options: Option[];
+}
+
+type PropsOptions = Option[] | OptionGroup[];
+
+const props = defineProps<{
+  modelValue?: number | string | null;
+  options: PropsOptions;
   placeholder?: string;
 }>();
 
@@ -16,18 +24,14 @@ const emit = defineEmits(["update:modelValue"]);
 
 const showDropdown = ref(false);
 const selectedLabel = ref(
-  props.options.find((opt) => opt.value === props.modelValue)?.label ||
-    props.placeholder ||
-    "Выберите",
+  findLabelByValue(props.modelValue) || props.placeholder || "Выберите",
 );
 
 watch(
   () => props.modelValue,
   (newValue) => {
     selectedLabel.value =
-      props.options.find((opt) => opt.value === newValue)?.label ||
-      props.placeholder ||
-      "Выберите";
+      findLabelByValue(newValue) || props.placeholder || "Выберите";
   },
 );
 
@@ -58,12 +62,45 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleClickOutside);
 });
+
+function isGroup(option: Option | OptionGroup): option is OptionGroup {
+  return (option as OptionGroup).options !== undefined;
+}
+
+function findLabelByValue(value: unknown): string | null {
+  if (!value) return null;
+
+  if (props.options.length === 0) return null;
+
+  if (isGroup(props.options[0] as Option | OptionGroup)) {
+    // групповой селект
+    for (const group of props.options as OptionGroup[]) {
+      const found = group.options.find((opt) => opt.value === value);
+      if (found) return found.label;
+    }
+  } else {
+    // обычный селект
+    const found = (props.options as Option[]).find(
+      (opt) => opt.value === value,
+    );
+    if (found) return found.label;
+  }
+
+  return null;
+}
+const loading = computed(() => props.options.length === 0);
+
 </script>
 
 <template>
   <div class="select-input">
     <button class="select-input__button" @click="toggleDropdown">
-      <span class="select-input__label">{{ selectedLabel }}</span>
+      <span class="select-input__label">
+        <template v-if="loading">
+          <SelectSkeleton />
+        </template>
+        <template v-else>{{ selectedLabel }}</template>
+      </span>
       <svg
         class="select-input__icon"
         :class="{ 'select-input__icon--open': showDropdown }"
@@ -84,99 +121,126 @@ onBeforeUnmount(() => {
     </button>
     <div v-if="showDropdown" class="select-input__dropdown">
       <ul class="select-input__list">
-        <li
+        <template
           v-for="option in options"
-          :key="option.value"
-          @click="selectOption(option)"
-          class="select-input__list-item"
-          :class="{
-            'select-input__list-item--selected': modelValue === option.value,
-          }"
+          :key="isGroup(option) ? option.label : option.value"
         >
-          {{ option.label }}
-        </li>
+          <template v-if="isGroup(option)">
+            <li class="select-input__group-label">{{ option.label }}</li>
+            <li
+              v-for="opt in option.options"
+              :key="opt.value"
+              @click="selectOption(opt)"
+              class="select-input__list-item"
+              :class="{
+                'select-input__list-item--selected': modelValue === opt.value,
+              }"
+            >
+              {{ opt.label }}
+            </li>
+          </template>
+          <template v-else>
+            <li
+              @click="selectOption(option)"
+              class="select-input__list-item"
+              :class="{
+                'select-input__list-item--selected':
+                  modelValue === option.value,
+              }"
+            >
+              {{ option.label }}
+            </li>
+          </template>
+        </template>
       </ul>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-@use "@/shared/styles/_variables.scss";
+@use "@/shared/styles/_variables.scss" as *;
 
 .select-input {
   flex-grow: 1;
   position: relative;
-}
 
-.select-input__button {
-  width: 100%;
-  height: 56px;
-  border-radius: 10px;
-  border: 1px solid #d3d3de;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  font-size: 1.1rem;
-  color: #0e0e10;
-  cursor: pointer;
-  transition: border 0.15s;
+  &__button {
+    width: 100%;
+    height: 56px;
+    border-radius: $radius;
+    border: 1px solid $muted;
+    background: $surface;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 1.1rem;
+    color: $text;
+    cursor: pointer;
+    transition: border 0.15s;
 
-  &:hover,
-  &:focus {
-    border-color: #33d35e;
-  }
-}
-
-.select-input__label {
-  flex: 1;
-  text-align: left;
-}
-
-.select-input__icon {
-  margin-left: 16px;
-  transition: transform 0.2s ease-in-out;
-
-  &--open {
-    transform: rotate(180deg);
-  }
-}
-
-.select-input__dropdown {
-  position: absolute;
-  top: 62px;
-  left: 0;
-  width: 100%;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.select-input__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 200px; /* Ограничить высоту для скроллинга */
-  overflow-y: auto;
-}
-
-.select-input__list-item {
-  padding: 12px 24px;
-  cursor: pointer;
-  transition: background-color 0.15s;
-  font-size: 1.1rem;
-  color: #0e0e10;
-
-  &:hover {
-    background-color: #f0f0f0;
+    &:hover,
+    &:focus {
+      border-color: $primary;
+    }
   }
 
-  &--selected {
-    background-color: #e6ffe6;
-    font-weight: 600;
+  &__label {
+    flex: 1;
+    text-align: left;
+  }
+
+  &__icon {
+    margin-left: 16px;
+    transition: transform 0.2s ease-in-out;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: 62px;
+    left: 0;
+    width: 100%;
+    background-color: $surface;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    z-index: 1000;
+    overflow: hidden;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  &__group-label {
+    font-weight: bold;
+    padding: 8px 12px;
+    background: $background-light;
+    color: $active;
+  }
+
+  &__list-item {
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    font-size: 1.1rem;
+    color: $text;
+
+    &:hover {
+      background-color: $background-light;
+    }
+
+    &--selected {
+      background-color: $primary;
+      font-weight: 600;
+    }
   }
 }
 </style>

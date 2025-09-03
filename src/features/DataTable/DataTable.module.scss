@@ -1,0 +1,256 @@
+@use "@/shared/styles/variables" as variables;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  gap: 24px;
+  margin-top: 1.5rem;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+  max-width: 370px;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 44px;
+  height: 36px;
+  border: 1px solid #d3d3de;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  stroke: #55555c;
+  transition:
+    transform 0.2s ease,
+    stroke 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateX(-2px);
+    stroke: #000;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pageNumbers {
+  display: flex;
+  gap: 2px;
+}
+
+.pageNumber {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  color: #0e0e0f;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #f0f0f7;
+  }
+
+  &.active {
+    background: #f0f0f7;
+    transition:
+      transform 0.3s ease,
+      background 0.3s ease;
+  }
+
+  &:disabled {
+    background: transparent;
+    cursor: default;
+  }
+}
+
+.rowsPerPage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  select {
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #d3d3de;
+    padding: 0 8px;
+    background: white;
+    cursor: pointer;
+  }
+}
+
+.dataTableScroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dataTable {
+  min-width: 700px;
+  width: 100%;
+  border-collapse: collapse; // чтобы бордеры нормально работали
+}
+
+.dataTableHeader {
+  align-items: center;
+  gap: 0.625rem;
+  background: variables.$background-light;
+  height: 3.5rem;
+}
+
+.dataTableBody {
+  // display: flex;
+  flex-direction: column;
+
+  td {
+    text-align: left;
+    vertical-align: middle;
+    padding-right: 20px;
+  }
+  tr {
+    border-bottom: 1px solid variables.$muted;
+  }
+}
+
+.dataTableRow {
+  align-items: center;
+  height: 3.9375rem;
+  padding: 0 1rem;
+  background: variables.$surface;
+  gap: 0.625rem;
+}
+
+.cell {
+  text-align: left;
+  color: variables.$text;
+  color: #555c5c;
+  font-weight: 500;
+  padding-right: 20px;
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  &Checkbox {
+    flex: 0;
+    width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 16px;
+  }
+}
+
+.headBtn {
+  all: unset;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.sort {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+
+  &Up,
+  &Down {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+  }
+
+  &Up {
+    border-bottom: 8px solid variables.$muted;
+
+    &.active {
+      border-bottom-color: variables.$active;
+    }
+  }
+
+  &Down {
+    border-top: 8px solid variables.$muted;
+
+    &.active {
+      border-top-color: variables.$active;
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  background: variables.$muted;
+  opacity: 1;
+}
+
+.customCheckbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  &Box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
+    box-sizing: border-box;
+
+    svg {
+      display: block;
+    }
+  }
+
+  &:hover &Box {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+}
+
+@media (max-width: variables.$breakpoint-tablet-lg) {
+}
+
+@media (max-width: variables.$breakpoint-tablet) {
+  .dataTableHeader {
+    min-height: 64px;
+  }
+
+  .dataTableRow {
+    min-height: 68px;
+  }
+}
+.cellEdu {
+  display: flex;
+  gap: 0.5rem;
+}

@@ -1,14 +1,15 @@
 import type { ColumnDef } from "@tanstack/vue-table";
+import type { School } from "./App.vue";
 
-type Institution = {
-  id: string;
-  name: string;
-  region: string;
-  address: string;
-  educationLevels: string[];
-};
+export type TableHeaders = ColumnDef<School, unknown>[]
 
-export const columns: ColumnDef<Institution, unknown>[] = [
+export const tableHeaders: TableHeaders = [
+  {
+    accessorKey: "federalDistrict",
+    header: "Федеральный округ",
+    enableSorting: true,
+    cell: (info) => info.getValue(),
+  },
   {
     accessorKey: "region",
     header: "Регион",

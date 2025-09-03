@@ -1,13 +1,28 @@
-// src/lib/axios.ts
-import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from "axios";
 
-// Простой тип ошибки, которым мы будем оперировать в UI
+export enum ApiErrorCode {
+  NETWORK = "NETWORK_ERROR",
+  TIMEOUT = "TIMEOUT",
+  HTTP = "HTTP_ERROR",
+  UNKNOWN = "UNKNOWN",
+}
+
 export interface ApiError {
   message: string;
   status?: number;
-  code?: string; // например 'NETWORK_ERROR', 'TIMEOUT', 'UNAUTHORIZED'
+  code?: ApiErrorCode; // например 'NETWORK_ERROR', 'TIMEOUT', 'UNAUTHORIZED'
   original?: Error | AxiosError;
   isNetworkError?: boolean;
+}
+interface ApiResponse<T> {
+  status: boolean;
+  message: string;
+  data: T
 }
 
 interface ServerError {
@@ -17,8 +32,10 @@ interface ServerError {
   code?: string;
 }
 
+const baseURL = import.meta.env.VITE_API_BASE || undefined;
+
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || "/",
+  baseURL,
   timeout: 10000, // 10s
   headers: {
     "Content-Type": "application/json",
@@ -34,7 +51,7 @@ function normalizeError(error: Error | AxiosError): ApiError {
     if (!ax.response) {
       return {
         message: ax.message || "Сетевая ошибка. Проверьте подключение.",
-        code: "NETWORK_ERROR",
+        code: ApiErrorCode.NETWORK,
         isNetworkError: true,
         original: ax,
       };
@@ -49,7 +66,7 @@ function normalizeError(error: Error | AxiosError): ApiError {
       return {
         message: "Превышено время ожидания запроса.",
         status,
-        code: "TIMEOUT",
+        code: ApiErrorCode.TIMEOUT,
         original: ax,
       };
     }
@@ -57,29 +74,29 @@ function normalizeError(error: Error | AxiosError): ApiError {
     return {
       message: serverMsg || `Ошибка ${status}`,
       status,
-      code: "HTTP_ERROR",
+      code: ApiErrorCode.HTTP,
       original: ax,
     };
-  }
-  else{
+  } else {
     // Unknown error
     return {
       message: (error as Error)?.message || "Неизвестная ошибка",
-      code: "UNKNOWN",
+      code: ApiErrorCode.UNKNOWN,
       original: error,
     };
-
   }
-
 }
 
 // Обёртка для вызовов — возвращает уже распарсенный data или выбрасывает ApiError
-export async function request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
+export async function request<T = unknown>(
+  config: AxiosRequestConfig,
+): Promise<ApiResponse<T>> {
   try {
-    const res: AxiosResponse<T> = await axiosInstance.request<T>(config);
+    const res: AxiosResponse = await axiosInstance.request<T>(config);
     return res.data;
-  } catch (e: unknown) {
-    const err = normalizeError(e);
+  } catch (e) {
+    const catchError = e as Error | AxiosError;
+    const err = normalizeError(catchError);
     // Логирование можно оставить для dev
     if (import.meta.env.DEV) console.error("API ERROR", err);
     throw err;

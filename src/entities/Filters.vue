@@ -1,27 +1,43 @@
 <script lang="ts" setup>
 import CalendarFilter from "@/features/calendar/ui/CalendarFilter.vue";
-import styles from "./Filters.module.scss";
 import SelectInput from "@/shared/ui/SelectInput.vue";
-import { onMounted, onUpdated } from "vue";
+import styles from "./Filters.module.scss";
+
+interface Option {
+  value: string | number;
+  label: string;
+}
+
+interface OptionGroup {
+  label: string;
+  options: Option[];
+}
 
 interface IProps {
   calendarRange: [string, string] | null;
   typeFilter: string | null;
   statusFilter: string | null;
+  regionFilter: string | null;
+  typeOptions: Option[];
+  statusOptions: Option[];
+  regionOptions: OptionGroup[];
 }
 
-const { calendarRange, statusFilter, typeFilter } = defineProps<IProps>();
-onMounted(() => {
-  console.log("Mounted");
-});
+const {
+  calendarRange,
+  statusFilter,
+  typeFilter,
+  regionFilter,
+  typeOptions,
+  statusOptions,
+  regionOptions,
+} = defineProps<IProps>();
 
-onUpdated(() => {
-  console.log("Updated (rerender)");
-});
 const emit = defineEmits([
   "update:calendarRange",
   "update:typeFilter",
   "update:statusFilter",
+  "update:regionFilter",
 ]);
 
 function onCalendarChange(value: [string, string]) {
@@ -35,21 +51,20 @@ function onTypeChange(value: string) {
 function onStatusChange(value: string) {
   emit("update:statusFilter", value);
 }
-const typeOptions = [
-  { value: "academy", label: "Академия" },
-  { value: "university", label: "ВУЗ" },
-  { value: "school", label: "Школа" },
-];
 
-const statusOptions = [
-  { value: "active", label: "Действующее" },
-  { value: "inactive", label: "Недействующее" },
-  { value: "unknown", label: "Неизвестно" },
-];
+function onRegionChange(value: string) {
+  emit("update:regionFilter", value);
+}
 </script>
 
 <template>
   <div :class="styles.filters">
+    <SelectInput
+      :modelValue="regionFilter"
+      @update:modelValue="onRegionChange"
+      :options="regionOptions"
+      placeholder="Федеральные округа и регионы"
+    />
     <CalendarFilter
       :modelValue="calendarRange"
       @update:modelValue="onCalendarChange"
@@ -66,6 +81,5 @@ const statusOptions = [
       :options="statusOptions"
       placeholder="Состояние"
     />
-    
   </div>
 </template>

@@ -1,0 +1,249 @@
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import Filters from "@/entities/Filters.vue";
+import PrevArrow from "@/app/images/PrevArrow.svg";
+import NextArrow from "@/app/images/NextArrow.svg";
+import $style from "./DataTable.module.scss";
+import {
+  fetchFederalDistricts,
+  type FederalDistricts,
+} from "@/app/axios/federalDistricts";
+import { fetchRegions, type Regions } from "@/app/axios/regions";
+import { useTable } from "./useTable";
+import type { School } from "@/app/App.vue";
+import type { TableHeaders } from "@/app/tableHeaders";
+import { useSelect } from "./useSelect";
+import DataTableHeader from "./DataTableHeader.vue";
+import DataTableBody from "./DataTableBody.vue";
+
+
+type Props = {
+  isLoading: boolean;
+  tableHeaders: TableHeaders;
+  schools: School[];
+  selectable?: boolean;
+  regionFilter: string | null;
+  pageIndex: number;
+  pageSize: number;
+};
+// props/emit
+const {
+  isLoading,
+  tableHeaders,
+  schools,
+  selectable,
+  regionFilter,
+  pageIndex,
+  pageSize,
+} = defineProps<Props>();
+const emit = defineEmits<{
+  (e: "update:selected", value: Set<string>): void;
+  (e: "update:regionFilter", value: string): void;
+  (e: "update:pageIndex", value: number): void;
+  (e: "update:pageSize", value: number): void;
+}>();
+
+// === Фильтры ===
+const calendarRange = ref<[string, string] | null>(null);
+const typeFilter = ref<string | null>(null);
+const statusFilter = ref<string | null>(null);
+
+interface Option {
+  value: string | number;
+  label: string;
+}
+interface OptionGroup {
+  label: string;
+  options: Option[];
+}
+
+const typeOptions: Option[] = [
+  { value: "academy", label: "Академия" },
+  { value: "university", label: "ВУЗ" },
+  { value: "school", label: "Школа" },
+];
+const statusOptions: Option[] = [
+  { value: "active", label: "Действующее" },
+  { value: "inactive", label: "Недействующее" },
+  { value: "unknown", label: "Неизвестно" },
+];
+
+const regionOptions = ref<OptionGroup[]>([]);
+
+// --- Vue Query для регионов ---
+const { data: federalData } = useQuery<FederalDistricts>({
+  queryKey: ["federalDistricts"],
+  queryFn: fetchFederalDistricts,
+});
+
+const { data: regionData } = useQuery<Regions>({
+  queryKey: ["regions"],
+  queryFn: fetchRegions,
+  retry: 1,
+});
+
+// автоматически формируем options после загрузки данных
+watch([federalData, regionData], () => {
+  const federalDistricts = Array.isArray(federalData.value)
+    ? federalData.value
+    : [];
+  const regions = Array.isArray(regionData.value) ? regionData.value : [];
+
+  regionOptions.value = [
+    {
+      label: "Федеральные округа",
+      options: federalDistricts.map((fd) => ({
+        value: `federal-${fd.id}`,
+        label: fd.name,
+      })),
+    },
+    {
+      label: "Регионы",
+      options: regions.map((r) => ({ value: `region-${r.id}`, label: r.name })),
+    },
+  ];
+});
+
+// === Обновление фильтров ===
+function onUpdateCalendarRange(val: [string, string]) {
+  calendarRange.value = val;
+}
+function onUpdateTypeFilter(val: string) {
+  typeFilter.value = val;
+}
+function onUpdateStatusFilter(val: string) {
+  statusFilter.value = val;
+}
+function onUpdateRegionFilter(val: string) {
+  emit("update:regionFilter", val);
+}
+
+// === Таблица ===
+const pageSizeOptions = [10, 20, 30, 40, 50];
+function goToPage(p: number) {
+  emit("update:pageIndex", p - 1);
+  table.setPageIndex(pageIndex);
+}
+
+const { table } = useTable({
+  schools: computed(() => schools),
+  tableHeaders,
+  pageIndex,
+  pageSize,
+  emit,
+});
+console.log(schools);
+
+// --- Выбор строк ---
+const { allSelected, selectedIds, toggleAll, toggleOne } = useSelect({
+  emit,
+  schools: schools,
+  selectable,
+});
+
+// --- Пагинация с "..." ---
+const paginationPages = computed<(number | "...")[]>(() => {
+  const totalPages = table.getPageCount();
+  const current = pageIndex + 1;
+  const pages: (number | "...")[] = [];
+
+  if (totalPages <= 5) for (let i = 1; i <= totalPages; i++) pages.push(i);
+  else {
+    pages.push(1);
+    if (current <= 3) pages.push(2, 3, "...");
+    else if (current >= totalPages - 2)
+      pages.push("...", totalPages - 2, totalPages - 1);
+    else pages.push("...", current - 1, current, current + 1, "...");
+    pages.push(totalPages);
+  }
+  return pages;
+});
+</script>
+
+<template>
+  <Filters
+    :calendarRange="calendarRange"
+    :typeFilter="typeFilter"
+    :statusFilter="statusFilter"
+    :regionFilter="regionFilter"
+    :typeOptions="typeOptions"
+    :statusOptions="statusOptions"
+    :regionOptions="regionOptions"
+    @update:calendarRange="onUpdateCalendarRange"
+    @update:typeFilter="onUpdateTypeFilter"
+    @update:statusFilter="onUpdateStatusFilter"
+    @update:regionFilter="onUpdateRegionFilter"
+  />
+
+  <div :class="$style.dataTableScroll">
+    <table :class="$style.dataTable" cellspacing="0">
+      <!-- Header -->
+      <thead>
+        <DataTableHeader
+          :headerGroups="table.getHeaderGroups()"
+          :allSelected="allSelected"
+          :toggleAll="toggleAll"
+        />
+      </thead>
+
+      <!-- Body -->
+      <tbody :class="$style.dataTableBody">
+        <DataTableBody
+          :isLoading="isLoading"
+          :rows="table.getRowModel().rows"
+          :selectedIds="selectedIds"
+          :selectable="selectable"
+          :toggleOne="toggleOne"
+        />
+      </tbody>
+    </table>
+    <!-- Pagination -->
+    <div :class="$style.pagination">
+      <div :class="$style.paginationLeft">
+        <button
+          :class="$style.pageBtn"
+          :disabled="pageIndex === 0"
+          @click="emit('update:pageIndex', pageIndex - 1)"
+        >
+          <PrevArrow />
+        </button>
+
+        <div :class="$style.pageNumbers">
+          <button
+            v-for="p in paginationPages"
+            :key="p"
+            :class="[
+              $style.pageNumber,
+              { [$style.active]: p === pageIndex + 1 },
+            ]"
+            @click="typeof p === 'number' && goToPage(p)"
+            :disabled="p === '...'"
+          >
+            {{ p }}
+          </button>
+        </div>
+
+        <button
+          :class="$style.pageBtn"
+          :disabled="pageIndex === table.getPageCount() - 1"
+          @click="emit('update:pageIndex', pageIndex + 1)"
+        >
+          <NextArrow />
+        </button>
+      </div>
+
+      <div :class="$style.rowsPerPage">
+        <span>Показывать</span>
+        <select
+          :modelValue="+pageSize"
+          @update:modelValue="$emit('update:pageSize', $event)"
+        >
+          <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
+            {{ opt }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</template>
