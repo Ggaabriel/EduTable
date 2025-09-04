@@ -85,12 +85,17 @@ export function mapApiSchool(api: ApiSchool): School {
   };
 }
 
-
+interface SchoolResponse {
+  schools: School[];
+  totalCount: number;
+  page: number;
+  pages: number;
+}
 export async function fetchSchools(
   count: number,
   page: number,
   params: { federal_district_id?: number; region_id?: number },
-): Promise<School[]> {
+): Promise<SchoolResponse> {
   const res: ApiSchoolsResponse = await request({
     url: `/schools?count=${count}&page=${page}${params.federal_district_id ? "&federal_district_id=" + params.federal_district_id : ""}${params.region_id ? "&region_id=" + params.region_id : ""}`,
     method: "GET",
@@ -98,5 +103,10 @@ export async function fetchSchools(
 
   // маппим список
 
-  return res.data.list.map(mapApiSchool);
+  return {
+    schools: res.data.list.map(mapApiSchool),
+    totalCount: res.data.total_count,
+    page: res.data.page,
+    pages: res.data.pages_count,
+  };
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, type Ref } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { keepPreviousData, useQuery } from "@tanstack/vue-query";
 import DataTable from "@/features/DataTable/DataTable.vue";
 import styles from "./App.module.scss";
 import { tableHeaders } from "./tableHeaders";
@@ -17,8 +17,7 @@ const pageSize = ref(10);
 
 function onUpdateRegionFilter(val: string) {
   regionFilter.value = val;
-  if (val.startsWith("federal-")) console.log("federal=", val.split("-")[1]);
-  else if (val.startsWith("region-")) console.log("region=", val.split("-")[1]);
+  pageIndex.value = 0;
 }
 function getSchoolParams() {
   if (!regionFilter.value) return {};
@@ -49,19 +48,31 @@ export interface School {
 }
 
 // === Запрос школ через vue-query ===
-const {
-  data: schools,
-  error,
-  isLoading,
-  refetch,
-} = useQuery({
-  queryKey: ["schools", regionFilter],
+const { data, isLoading, error, refetch } = useQuery({
+  queryKey: ["schools", regionFilter, pageIndex, pageSize], // ключи — рефы ок
   queryFn: () => {
-    const params = getSchoolParams();
-    return fetchSchools(pageSize.value, 1, params);
+    const p = getSchoolParams();
+    // сервер у тебя 1-based — конвертим
+    return fetchSchools(pageSize.value, pageIndex.value + 1, p);
   },
-  enabled: !!regionFilter.value,
-});   
+  enabled: computed(() => regionFilter.value !== null),
+  placeholderData: keepPreviousData, // не мигаем между переключениями
+  // сразу приводим к удобной структуре
+  select: (api) => ({
+    rows: api.schools, // массив для таблицы
+    page: api.page, // 1-based с бэка
+    pages: api.pages, // всего страниц
+    total: api.totalCount, // всего записей
+  }),
+  retry: 0,
+});
+
+// Чистый массив для таблицы
+const schools = computed(() => data.value?.rows ?? []);
+
+//const totalCount = computed(() => data.value?.total ?? 0);
+const totalPages = computed(() => data.value?.pages ?? 0); // общее число страниц (серв)
+
 const selectable = ref(true);
 
 watch(regionFilter, () => {
@@ -72,7 +83,6 @@ watch(regionFilter, () => {
 watch(pageSize, () => {
   if (pageSize.value) {
     console.log(pageSize.value);
-
     refetch();
   }
 });
@@ -113,6 +123,9 @@ function handleRetry() {
 function updatePageSize(v: number) {
   pageSize.value = v;
 }
+function updatePageIndex(v: number) {
+  pageIndex.value = v;
+}
 
 const { table } = useTable({
   schools: filtered,
@@ -120,6 +133,8 @@ const { table } = useTable({
   pageIndex,
   pageSize,
 });
+const currentPage = computed(() => pageIndex.value + 1);
+
 </script>
 
 <template>
@@ -137,12 +152,15 @@ const { table } = useTable({
     />
 
     <DataTable
+      :currentPage="currentPage"
+      :totalPages="totalPages"
       :allSelected="allSelected"
       :toggleAll="toggleAll"
       :toggleOne="toggleOne"
       :selectedIds="selectedIds"
       :table="table"
       @update:pageSize="updatePageSize"
+      @update:pageIndex="updatePageIndex"
       :pageIndex="pageIndex"
       :pageSize="pageSize"
       :isLoading="isLoading"

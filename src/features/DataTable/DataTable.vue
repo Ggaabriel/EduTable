@@ -27,16 +27,19 @@ type Props = {
   allSelected: boolean;
   toggleOne: (id?: string | number) => void;
   toggleAll: () => void;
+  totalPages: number;
+  currentPage: number;
 };
 // props/emit
 const {
+  totalPages,
+  currentPage,
   selectedIds,
   table,
   isLoading,
   schools,
   selectable,
   regionFilter,
-  pageIndex,
   pageSize,
 } = defineProps<Props>();
 const emit = defineEmits<{
@@ -78,7 +81,7 @@ const { data: federalData } = useQuery<FederalDistricts>({
   queryKey: ["federalDistricts"],
   queryFn: fetchFederalDistricts,
   placeholderData: keepPreviousData,
-}); 
+});
 
 const { data: regionData, isPending } = useQuery<Regions>({
   queryKey: ["regions"],
@@ -124,10 +127,6 @@ function onUpdateRegionFilter(val: string) {
 
 // === Таблица ===
 const pageSizeOptions = [10, 20, 30, 40, 50];
-function goToPage(p: number) {
-  emit("update:pageIndex", p - 1);
-  table.setPageIndex(pageIndex);
-}
 
 console.log(schools);
 
@@ -140,12 +139,13 @@ console.log(schools);
 
 // --- Пагинация с "..." ---
 const paginationPages = computed<(number | "...")[]>(() => {
-  const totalPages = table.getPageCount();
-  const current = pageIndex + 1;
   const pages: (number | "...")[] = [];
+  const current = currentPage; // число 1-based
+  if (!totalPages) return [];
 
-  if (totalPages <= 5) for (let i = 1; i <= totalPages; i++) pages.push(i);
-  else {
+  if (totalPages <= 5) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
     pages.push(1);
     if (current <= 3) pages.push(2, 3, "...");
     else if (current >= totalPages - 2)
@@ -155,6 +155,14 @@ const paginationPages = computed<(number | "...")[]>(() => {
   }
   return pages;
 });
+
+function goToPage(p: number) {
+  if (!p || p < 1 || p > totalPages) return;
+  emit("update:pageIndex", p - 1); // передаем 0-based index родителю
+}
+function changePageSize(size: number) {
+  emit("update:pageSize", size);
+}
 </script>
 
 <template>
@@ -198,22 +206,21 @@ const paginationPages = computed<(number | "...")[]>(() => {
     <!-- Pagination -->
     <div :class="$style.pagination">
       <div :class="$style.paginationLeft">
+        <!-- Кнопка "Предыдущая" -->
         <button
           :class="$style.pageBtn"
-          :disabled="pageIndex === 0"
-          @click="emit('update:pageIndex', pageIndex - 1)"
+          :disabled="currentPage <= 1"
+          @click="goToPage(currentPage - 1)"
         >
           <PrevArrow />
         </button>
 
+        <!-- Страницы -->
         <div :class="$style.pageNumbers">
           <button
             v-for="p in paginationPages"
             :key="p"
-            :class="[
-              $style.pageNumber,
-              { [$style.active]: p === pageIndex + 1 },
-            ]"
+            :class="[$style.pageNumber, { [$style.active]: p === currentPage }]"
             @click="typeof p === 'number' && goToPage(p)"
             :disabled="p === '...'"
           >
@@ -221,26 +228,24 @@ const paginationPages = computed<(number | "...")[]>(() => {
           </button>
         </div>
 
+        <!-- Кнопка "Следующая" -->
+
         <button
           :class="$style.pageBtn"
-          :disabled="pageIndex === table.getPageCount() - 1"
-          @click="emit('update:pageIndex', pageIndex + 1)"
+          :disabled="currentPage >= totalPages"
+          @click="goToPage(currentPage + 1)"
         >
           <NextArrow />
         </button>
       </div>
 
+      <!-- Количество элементов на странице -->
       <div :class="$style.rowsPerPage">
         <span>Показывать</span>
         <select
-          :value="+pageSize"
+          :value="pageSize"
           @change="
-            (e: Event) => {
-              const ev = e.target as HTMLSelectElement
-              console.log(ev.value);
-
-              emit('update:pageSize', +ev.value);
-            }
+            (e: Event) => changePageSize(+(e.target as HTMLSelectElement).value)
           "
         >
           <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
