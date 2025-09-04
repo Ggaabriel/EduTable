@@ -1,30 +1,26 @@
 import type { School } from "@/app/App.vue";
-import { computed, ref, watch } from "vue";
+import { computed, type Ref } from "vue";
 
 type Props = {
-  emit: { (e: "update:selected", value: Set<string>): void };
-  selectable?: boolean;
-  schools: School[];
+  selectable?: Ref<boolean, boolean>;
+  schools: Ref<School[]>;
+  selectedIds: Ref<Set<string>>;
 };
 
-export const useSelect = ({
-  emit,
-  selectable,
-  schools,
-}: Props) => {
-  const selectedIds = ref<Set<string>>(new Set());
+export const useSelect = ({ selectable, schools, selectedIds }: Props) => {
 
-  watch(selectedIds, (v) => emit("update:selected", v));
   const allSelected = computed(() => {
-    if (!selectable || schools.length === 0) return false;
-    return schools.some((r) => r.id && selectedIds.value.has(String(r.id)));
+    if (!selectable || schools.value.length === 0) return false;
+    return schools.value.some(
+      (r) => r.id && selectedIds.value.has(String(r.id)),
+    );
   });
   function toggleAll() {
     if (!selectable) return;
     if (allSelected.value) selectedIds.value = new Set();
     else {
       const next = new Set<string>();
-      for (const r of schools) if (r.id != null) next.add(String(r.id));
+      for (const r of schools.value) if (r.id != null) next.add(String(r.id));
       selectedIds.value = next;
     }
   }
@@ -36,5 +32,5 @@ export const useSelect = ({
     else next.add(key);
     selectedIds.value = next;
   }
-  return { allSelected, toggleAll, toggleOne, selectedIds };
+  return { allSelected, toggleAll, toggleOne };
 };

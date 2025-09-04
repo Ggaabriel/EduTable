@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { keepPreviousData, useQuery } from "@tanstack/vue-query";
 import Filters from "@/entities/Filters.vue";
 import PrevArrow from "@/app/images/PrevArrow.svg";
 import NextArrow from "@/app/images/NextArrow.svg";
@@ -10,27 +10,29 @@ import {
   type FederalDistricts,
 } from "@/app/axios/federalDistricts";
 import { fetchRegions, type Regions } from "@/app/axios/regions";
-import { useTable } from "./useTable";
 import type { School } from "@/app/App.vue";
-import type { TableHeaders } from "@/app/tableHeaders";
-import { useSelect } from "./useSelect";
 import DataTableHeader from "./DataTableHeader.vue";
 import DataTableBody from "./DataTableBody.vue";
-
+import type { Table } from "@tanstack/vue-table";
 
 type Props = {
   isLoading: boolean;
-  tableHeaders: TableHeaders;
   schools: School[];
   selectable?: boolean;
   regionFilter: string | null;
   pageIndex: number;
   pageSize: number;
+  table: Table<School>;
+  selectedIds: Set<string>;
+  allSelected: boolean;
+  toggleOne: (id?: string | number) => void;
+  toggleAll: () => void;
 };
 // props/emit
 const {
+  selectedIds,
+  table,
   isLoading,
-  tableHeaders,
   schools,
   selectable,
   regionFilter,
@@ -75,12 +77,13 @@ const regionOptions = ref<OptionGroup[]>([]);
 const { data: federalData } = useQuery<FederalDistricts>({
   queryKey: ["federalDistricts"],
   queryFn: fetchFederalDistricts,
-});
+  placeholderData: keepPreviousData,
+}); 
 
-const { data: regionData } = useQuery<Regions>({
+const { data: regionData, isPending } = useQuery<Regions>({
   queryKey: ["regions"],
   queryFn: fetchRegions,
-  retry: 1,
+  placeholderData: keepPreviousData,
 });
 
 // автоматически формируем options после загрузки данных
@@ -126,21 +129,14 @@ function goToPage(p: number) {
   table.setPageIndex(pageIndex);
 }
 
-const { table } = useTable({
-  schools: computed(() => schools),
-  tableHeaders,
-  pageIndex,
-  pageSize,
-  emit,
-});
 console.log(schools);
 
 // --- Выбор строк ---
-const { allSelected, selectedIds, toggleAll, toggleOne } = useSelect({
-  emit,
-  schools: schools,
-  selectable,
-});
+// const { allSelected, selectedIds, toggleAll, toggleOne } = useSelect({
+//   emit,
+//   schools: schools,
+//   selectable,
+// });
 
 // --- Пагинация с "..." ---
 const paginationPages = computed<(number | "...")[]>(() => {
@@ -163,6 +159,7 @@ const paginationPages = computed<(number | "...")[]>(() => {
 
 <template>
   <Filters
+    :isPending="isPending"
     :calendarRange="calendarRange"
     :typeFilter="typeFilter"
     :statusFilter="statusFilter"
@@ -236,8 +233,15 @@ const paginationPages = computed<(number | "...")[]>(() => {
       <div :class="$style.rowsPerPage">
         <span>Показывать</span>
         <select
-          :modelValue="+pageSize"
-          @update:modelValue="$emit('update:pageSize', $event)"
+          :value="+pageSize"
+          @change="
+            (e: Event) => {
+              const ev = e.target as HTMLSelectElement
+              console.log(ev.value);
+
+              emit('update:pageSize', +ev.value);
+            }
+          "
         >
           <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
             {{ opt }}

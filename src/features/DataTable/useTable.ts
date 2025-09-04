@@ -12,19 +12,15 @@ import { ref, type Ref } from "vue";
 interface Props {
   schools: Ref<School[]>;
   tableHeaders: TableHeaders;
-  pageIndex: number;
-  pageSize: number;
-  emit: {
-    (e: "update:pageIndex", value: number): void;
-    (e: "update:pageSize", value: number): void;
-  };
+  pageIndex: Ref<number>;
+  pageSize: Ref<number>;
+
 }
 export const useTable = ({
   schools,
   tableHeaders,
   pageIndex,
-  pageSize,
-  emit,
+  pageSize
 }: Props) => {
   const sorting = ref<SortingState>([]);
   console.log(schools);
@@ -40,7 +36,7 @@ export const useTable = ({
         return sorting.value;
       },
       get pagination() {
-        return { pageIndex, pageSize };
+        return { pageIndex: pageIndex.value, pageSize:pageSize.value };
       },
     },
     onSortingChange: (updater) => {
@@ -50,10 +46,10 @@ export const useTable = ({
     onPaginationChange: (updater) => {
       const next =
         typeof updater === "function"
-          ? updater({ pageIndex: pageIndex, pageSize: pageSize })
+          ? updater({ pageIndex: pageIndex.value, pageSize: pageSize.value })
           : updater;
-      emit("update:pageIndex", next.pageIndex);
-      emit("update:pageSize", next.pageSize);
+      pageIndex.value = next.pageIndex
+      pageSize.value = next.pageSize
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

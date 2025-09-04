@@ -66,7 +66,7 @@ export function mapApiSchool(api: ApiSchool): School {
   const educationLevels = Array.from(
     new Set(
       api.supplements.flatMap((s) =>
-        s.educational_programs
+        (s.educational_programs ?? [])
           .map((p) => p.edu_level?.name)
           .filter((name): name is string => Boolean(name)),
       ),
@@ -84,6 +84,7 @@ export function mapApiSchool(api: ApiSchool): School {
     federalDistrict: api.edu_org.federal_district.name,
   };
 }
+
 
 export async function fetchSchools(
   count: number,

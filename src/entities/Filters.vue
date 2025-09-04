@@ -21,9 +21,11 @@ interface IProps {
   typeOptions: Option[];
   statusOptions: Option[];
   regionOptions: OptionGroup[];
+  isPending: boolean;
 }
 
 const {
+  isPending,
   calendarRange,
   statusFilter,
   typeFilter,
@@ -64,6 +66,7 @@ function onRegionChange(value: string) {
       @update:modelValue="onRegionChange"
       :options="regionOptions"
       placeholder="Федеральные округа и регионы"
+      :isPending="isPending"
     />
     <CalendarFilter
       :modelValue="calendarRange"

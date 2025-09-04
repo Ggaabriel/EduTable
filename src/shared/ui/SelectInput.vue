@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import SelectSkeleton from "./SelectSkeleton.vue";
 
 interface Option {
@@ -18,6 +18,7 @@ const props = defineProps<{
   modelValue?: number | string | null;
   options: PropsOptions;
   placeholder?: string;
+  isPending?: boolean;
 }>();
 
 const emit = defineEmits(["update:modelValue"]);
@@ -88,18 +89,14 @@ function findLabelByValue(value: unknown): string | null {
 
   return null;
 }
-const loading = computed(() => props.options.length === 0);
-
 </script>
 
 <template>
-  <div class="select-input">
+  <SelectSkeleton v-if="isPending" />
+  <div v-else class="select-input">
     <button class="select-input__button" @click="toggleDropdown">
       <span class="select-input__label">
-        <template v-if="loading">
-          <SelectSkeleton />
-        </template>
-        <template v-else>{{ selectedLabel }}</template>
+        {{ selectedLabel }}
       </span>
       <svg
         class="select-input__icon"
