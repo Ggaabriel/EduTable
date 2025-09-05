@@ -25,6 +25,8 @@ export const useTable = ({
   const sorting = ref<SortingState>([]);
   console.log(schools);
   const table = useVueTable({
+    autoResetPageIndex: false,
+    manualPagination: true,
     get data() {
       return schools;
     },

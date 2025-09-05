@@ -254,3 +254,34 @@
   display: flex;
   gap: 0.5rem;
 }
+
+
+.dataTableContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 6rem); // минус отступы шапки/мэйна, подкорректируй
+}
+
+.dataTableScroll {
+  flex: 1; // занимает оставшееся место
+  overflow: auto; // скролл только для таблицы
+  width: 100%;
+}
+
+.dataTable {
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 56px;
+  padding: 0 1rem;
+  background: variables.$surface;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05); // слегка отделяет от таблицы
+}

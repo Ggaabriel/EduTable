@@ -180,7 +180,7 @@ function changePageSize(size: number) {
     @update:statusFilter="onUpdateStatusFilter"
     @update:regionFilter="onUpdateRegionFilter"
   />
-
+  <div :class="$style.dataTableContainer">
   <div :class="$style.dataTableScroll">
     <table :class="$style.dataTable" cellspacing="0">
       <!-- Header -->
@@ -255,4 +255,5 @@ function changePageSize(size: number) {
       </div>
     </div>
   </div>
+</div>
 </template>

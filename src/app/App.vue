@@ -48,7 +48,7 @@ export interface School {
 }
 
 // === Запрос школ через vue-query ===
-const { data, isLoading, error, refetch } = useQuery({
+const { data, isFetching, error, refetch } = useQuery({
   queryKey: ["schools", regionFilter, pageIndex, pageSize], // ключи — рефы ок
   queryFn: () => {
     const p = getSchoolParams();
@@ -163,7 +163,7 @@ const currentPage = computed(() => pageIndex.value + 1);
       @update:pageIndex="updatePageIndex"
       :pageIndex="pageIndex"
       :pageSize="pageSize"
-      :isLoading="isLoading"
+      :isLoading="isFetching"
       @update:regionFilter="onUpdateRegionFilter"
       :regionFilter="regionFilter"
       :schools="filtered"

@@ -5,7 +5,6 @@ import styles from "./DataTable.module.scss";
 import type { School } from "@/app/App.vue";
 import CheckboxEmpty from "@/app/images/CheckboxEmpty.svg";
 import CheckboxChecked from "@/app/images/CheckboxChecked.svg";
-import { Skeleton } from "primevue";
 
 interface Props {
   isLoading: boolean;
@@ -15,7 +14,8 @@ interface Props {
   toggleOne: (id?: string | number) => void;
 }
 
-const {isLoading, rows, selectable, selectedIds, toggleOne} = defineProps<Props>();
+const { isLoading, rows, selectable, selectedIds, toggleOne } =
+  defineProps<Props>();
 console.log(isLoading);
 </script>
 
@@ -24,7 +24,9 @@ console.log(isLoading);
   <template v-if="isLoading">
     <tr v-for="i in 10" :key="'skeleton-' + i" :class="styles.dataTableRow">
       <td v-for="j in 6" :key="j">
-        <Skeleton height="20px" width="100%" borderRadius="6px" />
+        <div class="row-skeleton">
+          <div class="row-skeleton__bar" />
+        </div>
       </td>
     </tr>
   </template>
@@ -73,3 +75,37 @@ console.log(isLoading);
     </template>
   </template>
 </template>
+
+<style lang="scss" scoped>
+@use "@/shared/styles/_variables.scss" as *;
+
+.row-skeleton {
+  width: 100%;
+  height: 20px;
+  border-radius: $radius;
+  background: $background-lightest;
+  overflow: hidden;
+  position: relative;
+
+  &__bar {
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      $background-lightest 0%,
+      $background-light 50%,
+      $background-lightest 100%
+    );
+    animation: row-skeleton-loading 1.2s infinite;
+  }
+}
+
+@keyframes row-skeleton-loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+</style>
