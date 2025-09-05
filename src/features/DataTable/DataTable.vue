@@ -29,6 +29,9 @@ type Props = {
   toggleAll: () => void;
   totalPages: number;
   currentPage: number;
+  statusFilter: string | null;
+  typeFilter: string | null;
+
 };
 // props/emit
 const {
@@ -47,12 +50,12 @@ const emit = defineEmits<{
   (e: "update:regionFilter", value: string): void;
   (e: "update:pageIndex", value: number): void;
   (e: "update:pageSize", value: number): void;
+  (e: "update:statusFilter", value: string): void;
+  (e: "update:typeFilter", value: string): void;
 }>();
 
 // === Фильтры ===
 const calendarRange = ref<[string, string] | null>(null);
-const typeFilter = ref<string | null>(null);
-const statusFilter = ref<string | null>(null);
 
 interface Option {
   value: string | number;
@@ -116,10 +119,10 @@ function onUpdateCalendarRange(val: [string, string]) {
   calendarRange.value = val;
 }
 function onUpdateTypeFilter(val: string) {
-  typeFilter.value = val;
+  emit("update:typeFilter", val)
 }
 function onUpdateStatusFilter(val: string) {
-  statusFilter.value = val;
+  emit("update:statusFilter", val)
 }
 function onUpdateRegionFilter(val: string) {
   emit("update:regionFilter", val);
@@ -181,79 +184,83 @@ function changePageSize(size: number) {
     @update:regionFilter="onUpdateRegionFilter"
   />
   <div :class="$style.dataTableContainer">
-  <div :class="$style.dataTableScroll">
-    <table :class="$style.dataTable" cellspacing="0">
-      <!-- Header -->
-      <thead>
-        <DataTableHeader
-          :headerGroups="table.getHeaderGroups()"
-          :allSelected="allSelected"
-          :toggleAll="toggleAll"
-        />
-      </thead>
+    <div :class="$style.dataTableScroll">
+      <table :class="$style.dataTable" cellspacing="0">
+        <!-- Header -->
+        <thead>
+          <DataTableHeader
+            :headerGroups="table.getHeaderGroups()"
+            :allSelected="allSelected"
+            :toggleAll="toggleAll"
+          />
+        </thead>
 
-      <!-- Body -->
-      <tbody :class="$style.dataTableBody">
-        <DataTableBody
-          :isLoading="isLoading"
-          :rows="table.getRowModel().rows"
-          :selectedIds="selectedIds"
-          :selectable="selectable"
-          :toggleOne="toggleOne"
-        />
-      </tbody>
-    </table>
-    <!-- Pagination -->
-    <div :class="$style.pagination">
-      <div :class="$style.paginationLeft">
-        <!-- Кнопка "Предыдущая" -->
-        <button
-          :class="$style.pageBtn"
-          :disabled="currentPage <= 1"
-          @click="goToPage(currentPage - 1)"
-        >
-          <PrevArrow />
-        </button>
-
-        <!-- Страницы -->
-        <div :class="$style.pageNumbers">
+        <!-- Body -->
+        <tbody :class="$style.dataTableBody">
+          <DataTableBody
+            :isLoading="isLoading"
+            :rows="table.getRowModel().rows"
+            :selectedIds="selectedIds"
+            :selectable="selectable"
+            :toggleOne="toggleOne"
+          />
+        </tbody>
+      </table>
+      <!-- Pagination -->
+      <div :class="$style.pagination">
+        <div :class="$style.paginationLeft">
+          <!-- Кнопка "Предыдущая" -->
           <button
-            v-for="p in paginationPages"
-            :key="p"
-            :class="[$style.pageNumber, { [$style.active]: p === currentPage }]"
-            @click="typeof p === 'number' && goToPage(p)"
-            :disabled="p === '...'"
+            :class="$style.pageBtn"
+            :disabled="currentPage <= 1"
+            @click="goToPage(currentPage - 1)"
           >
-            {{ p }}
+            <PrevArrow />
+          </button>
+
+          <!-- Страницы -->
+          <div :class="$style.pageNumbers">
+            <button
+              v-for="p in paginationPages"
+              :key="p"
+              :class="[
+                $style.pageNumber,
+                { [$style.active]: p === currentPage },
+              ]"
+              @click="typeof p === 'number' && goToPage(p)"
+              :disabled="p === '...'"
+            >
+              {{ p }}
+            </button>
+          </div>
+
+          <!-- Кнопка "Следующая" -->
+
+          <button
+            :class="$style.pageBtn"
+            :disabled="currentPage >= totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            <NextArrow />
           </button>
         </div>
 
-        <!-- Кнопка "Следующая" -->
-
-        <button
-          :class="$style.pageBtn"
-          :disabled="currentPage >= totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
-          <NextArrow />
-        </button>
-      </div>
-
-      <!-- Количество элементов на странице -->
-      <div :class="$style.rowsPerPage">
-        <span>Показывать</span>
-        <select
-          :value="pageSize"
-          @change="
-            (e: Event) => changePageSize(+(e.target as HTMLSelectElement).value)
-          "
-        >
-          <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
-            {{ opt }}
-          </option>
-        </select>
+        <!-- Количество элементов на странице -->
+        <div :class="$style.rowsPerPage">
+          <span>Показывать</span>
+          <select
+            :value="pageSize"
+            @change="
+              (e: Event) =>
+                changePageSize(+(e.target as HTMLSelectElement).value)
+            "
+          >
+            <option v-for="opt in pageSizeOptions" :key="opt" :value="opt">
+              {{ opt }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </template>

@@ -88,12 +88,52 @@ watch(pageSize, () => {
 });
 
 // === Фильтрация ===
+const typeFilter = ref<string | null>(null);
+const statusFilter = ref<string | null>(null);
+
 const filtered = computed(() => {
   if (!schools.value) return [];
+
+  let result = schools.value;
+
+  // Поиск по имени
   const q = searchQuery.value.trim().toLowerCase();
-  if (!q) return schools.value;
-  return schools.value.filter((r) => r.name.toLowerCase().includes(q));
+  if (q) {
+    result = result.filter((r) => r.name.toLowerCase().includes(q));
+  }
+
+  // Фильтр по типу
+  if (typeFilter.value) {
+    result = result.filter((r) => r.type === typeFilter.value);
+  }
+
+  // Фильтр по статусу
+  if (statusFilter.value) {
+    result = result.filter((r) => r.status === statusFilter.value);
+  }
+
+  // Фильтр по региону (у тебя уже есть)
+  if (regionFilter.value) {
+    const params = getSchoolParams();
+    if (params.region_id) {
+      result = result.filter((r) => r.region === String(params.region_id));
+    }
+    if (params.federal_district_id) {
+      result = result.filter(
+        (r) => r.federalDistrict === String(params.federal_district_id),
+      );
+    }
+  }
+
+  return result;
 });
+
+function updateTypeFilter(val: string) {
+  typeFilter.value = val;
+}
+function updateStatusFilter(val: string) {
+  statusFilter.value = val;
+}
 
 // === Состояние нотификейшена ===
 const bannerVisible = ref(false);
@@ -134,7 +174,6 @@ const { table } = useTable({
   pageSize,
 });
 const currentPage = computed(() => pageIndex.value + 1);
-
 </script>
 
 <template>
@@ -152,6 +191,8 @@ const currentPage = computed(() => pageIndex.value + 1);
     />
 
     <DataTable
+      :typeFilter="typeFilter"
+      :statusFilter="statusFilter"
       :currentPage="currentPage"
       :totalPages="totalPages"
       :allSelected="allSelected"
@@ -161,6 +202,8 @@ const currentPage = computed(() => pageIndex.value + 1);
       :table="table"
       @update:pageSize="updatePageSize"
       @update:pageIndex="updatePageIndex"
+      @update:statusFilter="updateStatusFilter"
+      @update:typeFilter="updateTypeFilter"
       :pageIndex="pageIndex"
       :pageSize="pageSize"
       :isLoading="isFetching"
