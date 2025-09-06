@@ -62,6 +62,7 @@ export interface ApiSchool {
 
 export type FederalDistricts = FederalDistrict[];
 
+
 export function mapApiSchool(api: ApiSchool): School {
   const educationLevels = Array.from(
     new Set(

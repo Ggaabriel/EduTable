@@ -23,7 +23,6 @@ export const useTable = ({
   pageSize
 }: Props) => {
   const sorting = ref<SortingState>([]);
-  console.log(schools);
   const table = useVueTable({
     autoResetPageIndex: false,
     manualPagination: true,

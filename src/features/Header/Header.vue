@@ -3,8 +3,9 @@ import styles from "./Header.module.scss";
 import SearchInput from "@/features/search-input/ui/SearchInput.vue";
 import DownloadBtn from "@/features/download-btn/ui/DownloadBtn.vue";
 
-const { searchQuery } = defineProps<{
+const { searchQuery, downloadFromUrl } = defineProps<{
   searchQuery: string;
+  downloadFromUrl: () => void;
 }>();
 const emit = defineEmits(["update:searchQuery"]);
 
@@ -18,7 +19,7 @@ function onSearchChange(value: [string, string]) {
     <h1 :class="styles.header__title">Таблица учреждений</h1>
     <div :class="styles.header__controls">
       <SearchInput :searchQuery="searchQuery" @update:searchQuery="onSearchChange"/>
-      <DownloadBtn />
+      <DownloadBtn :downloadFromUrl="downloadFromUrl" />
     </div>
   </header>
 </template>

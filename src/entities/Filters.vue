@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import CalendarFilter from "@/features/calendar/ui/CalendarFilter.vue";
+// import CalendarFilter from "@/features/calendar/ui/CalendarFilter.vue";
 import SelectInput from "@/shared/ui/SelectInput.vue";
 import styles from "./Filters.module.scss";
+import TableButton from "@/features/download-btn/ui/TableButton.vue";
 
 interface Option {
   value: string | number;
@@ -22,11 +23,13 @@ interface IProps {
   statusOptions: Option[];
   regionOptions: OptionGroup[];
   isPending: boolean;
+  killFilters: () => void;
 }
 
 const {
+  killFilters,
   isPending,
-  calendarRange,
+  // calendarRange,
   statusFilter,
   typeFilter,
   regionFilter,
@@ -42,9 +45,9 @@ const emit = defineEmits([
   "update:regionFilter",
 ]);
 
-function onCalendarChange(value: [string, string]) {
-  emit("update:calendarRange", value);
-}
+// function onCalendarChange(value: [string, string]) {
+//   emit("update:calendarRange", value);
+// }
 
 function onTypeChange(value: string) {
   emit("update:typeFilter", value);
@@ -68,10 +71,10 @@ function onRegionChange(value: string) {
       placeholder="Федеральные округа и регионы"
       :isPending="isPending"
     />
-    <CalendarFilter
+    <!-- <CalendarFilter
       :modelValue="calendarRange"
       @update:modelValue="onCalendarChange"
-    />
+    /> -->
     <SelectInput
       :modelValue="typeFilter"
       @update:modelValue="onTypeChange"
@@ -84,5 +87,6 @@ function onRegionChange(value: string) {
       :options="statusOptions"
       placeholder="Состояние"
     />
+    <TableButton :func="killFilters" modelValue="Сбросить фильтры"/>
   </div>
 </template>

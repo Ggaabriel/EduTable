@@ -16,7 +16,6 @@ interface Props {
 
 const { isLoading, rows, selectable, selectedIds, toggleOne } =
   defineProps<Props>();
-console.log(isLoading);
 </script>
 
 <template>

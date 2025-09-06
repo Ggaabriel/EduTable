@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { keepPreviousData, useQuery } from "@tanstack/vue-query";
+import { useQuery } from "@tanstack/vue-query";
 import Filters from "@/entities/Filters.vue";
 import PrevArrow from "@/app/images/PrevArrow.svg";
 import NextArrow from "@/app/images/NextArrow.svg";
@@ -17,7 +17,6 @@ import type { Table } from "@tanstack/vue-table";
 
 type Props = {
   isLoading: boolean;
-  schools: School[];
   selectable?: boolean;
   regionFilter: string | null;
   pageIndex: number;
@@ -31,6 +30,7 @@ type Props = {
   currentPage: number;
   statusFilter: string | null;
   typeFilter: string | null;
+  killFilters: () => void;
 
 };
 // props/emit
@@ -40,10 +40,10 @@ const {
   selectedIds,
   table,
   isLoading,
-  schools,
   selectable,
   regionFilter,
   pageSize,
+  killFilters
 } = defineProps<Props>();
 const emit = defineEmits<{
   (e: "update:selected", value: Set<string>): void;
@@ -67,14 +67,13 @@ interface OptionGroup {
 }
 
 const typeOptions: Option[] = [
-  { value: "academy", label: "Академия" },
-  { value: "university", label: "ВУЗ" },
-  { value: "school", label: "Школа" },
+  { value: "Не определен", label: "Не определен" },
+  { value: "Постоянное", label: "Постоянное" },
 ];
 const statusOptions: Option[] = [
-  { value: "active", label: "Действующее" },
-  { value: "inactive", label: "Недействующее" },
-  { value: "unknown", label: "Неизвестно" },
+  { value: "Действующее", label: "Действующее" },
+  { value: "Недействующее", label: "Недействующее" },
+  { value: "Неизвестно", label: "Неизвестно" },
 ];
 
 const regionOptions = ref<OptionGroup[]>([]);
@@ -82,14 +81,12 @@ const regionOptions = ref<OptionGroup[]>([]);
 // --- Vue Query для регионов ---
 const { data: federalData } = useQuery<FederalDistricts>({
   queryKey: ["federalDistricts"],
-  queryFn: fetchFederalDistricts,
-  placeholderData: keepPreviousData,
+  queryFn: fetchFederalDistricts
 });
 
 const { data: regionData, isPending } = useQuery<Regions>({
   queryKey: ["regions"],
-  queryFn: fetchRegions,
-  placeholderData: keepPreviousData,
+  queryFn: fetchRegions
 });
 
 // автоматически формируем options после загрузки данных
@@ -130,8 +127,6 @@ function onUpdateRegionFilter(val: string) {
 
 // === Таблица ===
 const pageSizeOptions = [10, 20, 30, 40, 50];
-
-console.log(schools);
 
 // --- Выбор строк ---
 // const { allSelected, selectedIds, toggleAll, toggleOne } = useSelect({
@@ -182,6 +177,7 @@ function changePageSize(size: number) {
     @update:typeFilter="onUpdateTypeFilter"
     @update:statusFilter="onUpdateStatusFilter"
     @update:regionFilter="onUpdateRegionFilter"
+    :killFilters="killFilters"
   />
   <div :class="$style.dataTableContainer">
     <div :class="$style.dataTableScroll">

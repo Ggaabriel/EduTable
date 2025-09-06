@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, type Ref } from "vue";
-import { keepPreviousData, useQuery } from "@tanstack/vue-query";
+import { useQuery } from "@tanstack/vue-query";
 import DataTable from "@/features/DataTable/DataTable.vue";
 import styles from "./App.module.scss";
 import { tableHeaders } from "./tableHeaders";
@@ -9,9 +9,10 @@ import NotificationBanner from "@/shared/ui/NotificationBanner.vue";
 import { fetchSchools } from "./axios/schools";
 import { useTable } from "@/features/DataTable/useTable";
 import { useSelect } from "@/features/DataTable/useSelect";
+import { fetchDownload } from "./axios/download";
 
 const searchQuery = ref<string>("");
-const regionFilter = ref<string | null>("");
+const regionFilter = ref<string>("");
 const pageIndex: Ref<number, number> = ref(0);
 const pageSize = ref(10);
 
@@ -55,8 +56,7 @@ const { data, isFetching, error, refetch } = useQuery({
     // сервер у тебя 1-based — конвертим
     return fetchSchools(pageSize.value, pageIndex.value + 1, p);
   },
-  enabled: computed(() => regionFilter.value !== null),
-  placeholderData: keepPreviousData, // не мигаем между переключениями
+  enabled: computed(() => regionFilter.value !== ""),
   // сразу приводим к удобной структуре
   select: (api) => ({
     rows: api.schools, // массив для таблицы
@@ -82,7 +82,6 @@ watch(regionFilter, () => {
 });
 watch(pageSize, () => {
   if (pageSize.value) {
-    console.log(pageSize.value);
     refetch();
   }
 });
@@ -112,19 +111,6 @@ const filtered = computed(() => {
     result = result.filter((r) => r.status === statusFilter.value);
   }
 
-  // Фильтр по региону (у тебя уже есть)
-  if (regionFilter.value) {
-    const params = getSchoolParams();
-    if (params.region_id) {
-      result = result.filter((r) => r.region === String(params.region_id));
-    }
-    if (params.federal_district_id) {
-      result = result.filter(
-        (r) => r.federalDistrict === String(params.federal_district_id),
-      );
-    }
-  }
-
   return result;
 });
 
@@ -151,7 +137,6 @@ watch(error, (err) => {
   if (err) {
     bannerMessage.value = "Ошибка загрузки школ. Проверьте соединение.";
     bannerVisible.value = true;
-    console.log(err);
   }
 });
 
@@ -174,6 +159,21 @@ const { table } = useTable({
   pageSize,
 });
 const currentPage = computed(() => pageIndex.value + 1);
+
+async function downloadFromUrl() {
+  const p = getSchoolParams();
+  const url = await fetchDownload(pageSize.value, pageIndex.value + 1, p);
+  const link = document.createElement("a");
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+function killFilters() {
+  typeFilter.value = null;
+  statusFilter.value = null;
+  regionFilter.value = "";
+}
 </script>
 
 <template>
@@ -181,6 +181,8 @@ const currentPage = computed(() => pageIndex.value + 1);
     <Header
       :searchQuery="searchQuery"
       @update:searchQuery="(val: string) => (searchQuery = val)"
+      :downloadFromUrl="downloadFromUrl"
+      :killFilters="killFilters"
     />
 
     <NotificationBanner
@@ -209,8 +211,8 @@ const currentPage = computed(() => pageIndex.value + 1);
       :isLoading="isFetching"
       @update:regionFilter="onUpdateRegionFilter"
       :regionFilter="regionFilter"
-      :schools="filtered"
       :selectable="true"
+      :killFilters="killFilters"
     />
   </main>
 </template>

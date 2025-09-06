@@ -28,7 +28,7 @@ function onInput(e: Event) {
       @input="onInput"
       @focus="onFocus"
       @blur="onBlur"
-      placeholder="Поиск..."
+      placeholder="Поиск по названию..."
       class="search-input__field"
     />
     <Search class="search-input__icon" />
